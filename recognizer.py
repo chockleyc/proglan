@@ -73,5 +73,17 @@ class recognizer:
             self.match("ELSE")
             self.block()
 
+    def optInit(self):
+        if self.check("ASSIGN"):
+            self.match("ASIGN")
+            self.expression()
+
+    def whileStatement(self):
+        self.match("WHILE")
+        self.match("OPAREN")
+        self.expression()
+        self.match("CPAREN")
+        self.block()
+
 
 
