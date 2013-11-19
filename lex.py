@@ -1,7 +1,7 @@
 import re
 
 class lexeme:
-    def __init__(self, aType = None, aData = None):
+    def __init__(self, aType = None, aData = ""):
         self.datatype = aType
         self.data = aData
     def __str__(self):
@@ -10,7 +10,7 @@ class lexeme:
 class lexer:
     def __init__(self, filename):
         self.f = open(filename, 'r')
-        self.ch = ''
+        self.ch = ""
         self.stackString = ""
 
     def pushBack(self):
@@ -30,28 +30,53 @@ class lexer:
         myNum = ""
         while re.match("^[0-9]*$", self.ch):
             myNum = myNum + self.ch
+            last_pos = self.f.tell()
             self.ch = self.f.read(1)
-        return lexeme("NUMBER", myNum)
+        self.f.seek(last_pos)
+        return lexeme("INTEGER", myNum)
+
+    def checkForKeyword(self, inputVar):
+        if inputVar == "int":
+            return lexeme("TYPE_INT")
+
+        elif inputVar == "while":
+            return lexeme("WHILE")
+
+        elif inputVar == "for":
+            return lexeme("FOR")
+
+        elif inputVar == "return":
+            return lexeme("RETURN")
+
+        elif inputVar == "if":
+            return lexeme("IF")
+
+        elif inputVar == "else":
+            return lexeme("ELSE")
+
+        else:
+            return lexeme("VARIABLE", inputVar)
 
     def lexVariable(self):
         myVar = ""
         while re.match("^[A-Za-z0-9_-]*$", self.ch):
             myVar = myVar + self.ch
+            last_pos = self.f.tell()
             self.ch = self.f.read(1)
-        return lexeme("VARIABLE", myVar)
+        self.f.seek(last_pos)
+        return self.checkForKeyword(myVar)
 
     def lexString(self):
-        myString = ""
+        myString = "\""
         self.ch = self.f.read(1)
         while self.ch != '\"':
             myString = myString + self.ch
             self.ch = self.f.read(1)
-        return lexeme("STRING", myString)
+        return lexeme("STRING", myString + "\"")
 
     def lex(self):
-        self.skipWhiteSpace()
-
         self.ch = self.f.read(1)
+        self.skipWhiteSpace()
 
         if len(self.ch) < 1:
             return lexeme("ENDofINPUT")
@@ -67,6 +92,9 @@ class lexer:
 
         elif self.ch == '+':
             return lexeme("PLUS")
+
+        elif self.ch == '-':
+            return lexeme("MINUS")
 
         elif self.ch == '*':
             return lexeme("TIMES")
@@ -85,6 +113,9 @@ class lexer:
 
         elif self.ch == ';':
             return lexeme("SEMICOLON")
+
+        elif self.ch == '.':
+            return lexeme("DOT")
 
         elif self.ch == '{':
             return lexeme("OBRACE")
