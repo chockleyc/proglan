@@ -2,16 +2,16 @@ import re
 
 class lexeme:
     def __init__(self, aType = None, aData = None):
-        self.type = aType
+        self.datatype = aType
         self.data = aData
-        self.stackString = ""
-    def __print__(self):
-        print(self.type + " " + self.data)
+    def __str__(self):
+        return self.datatype + " " + self.data
 
 class lexer:
     def __init__(self, filename):
-        self.f = open(file, 'r')
+        self.f = open(filename, 'r')
         self.ch = ''
+        self.stackString = ""
 
     def pushBack(self):
         self.stackString = self.stackString + self.ch
@@ -28,24 +28,24 @@ class lexer:
 
     def lexNumber(self):
         myNum = ""
-        if re.match("^[0-9]*$", self.ch):
+        while re.match("^[0-9]*$", self.ch):
             myNum = myNum + self.ch
-        else:
-            return lexeme("NUMBER", myNum)
+            self.ch = self.f.read(1)
+        return lexeme("NUMBER", myNum)
 
     def lexVariable(self):
         myVar = ""
-        if re.match("^[A-Za-z0-9_-]*$", self.ch):
+        while re.match("^[A-Za-z0-9_-]*$", self.ch):
             myVar = myVar + self.ch
-        else:
-            return lexeme("VARIABLE", myVar)
+            self.ch = self.f.read(1)
+        return lexeme("VARIABLE", myVar)
 
     def lexString(self):
         myString = ""
         self.ch = self.f.read(1)
         while self.ch != '\"':
             myString = myString + self.ch
-
+            self.ch = self.f.read(1)
         return lexeme("STRING", myString)
 
     def lex(self):
@@ -86,17 +86,23 @@ class lexer:
         elif self.ch == ';':
             return lexeme("SEMICOLON")
 
+        elif self.ch == '{':
+            return lexeme("OBRACE")
+
+        elif self.ch == '}':
+            return lexeme("CBRACE")
+
         else:
             if re.match("^[0-9]*$", self.ch):
-                self.pushBack(self.ch)
+                self.pushBack()
                 return self.lexNumber()
 
             elif re.match("^[A-Za-z]*$", self.ch):
-                self.pushBack(self.ch)
+                self.pushBack()
                 return self.lexVariable()
 
             elif self.ch == '\"':
-                self.pushBack(self.ch)
+                self.pushBack()
                 return self.lexString()
 
             else:
