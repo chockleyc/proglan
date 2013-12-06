@@ -1,9 +1,12 @@
 import re
 
 class lexeme:
-    def __init__(self, aType = None, aData = ""):
+    def __init__(self, aType = None, aData = "", aLeft = None, aRight = None):
         self.datatype = aType
         self.data = aData
+        self.left = aLeft
+        self.right = aRight
+
     def __str__(self):
         return self.datatype + " " + self.data
 
@@ -25,6 +28,15 @@ class lexer:
     def skipWhiteSpace(self):
         while self.ch.isspace():
             self.ch = self.f.read(1)
+
+    def checkComment(self):
+        if self.ch == '`':
+            self.ch = self.f.read(1)
+            while self.ch != '`':
+                self.ch = self.f.read(1)
+            self.ch = self.f.read(1)
+            self.skipWhiteSpace()
+
 
     def lexNumber(self):
         myNum = ""
@@ -54,6 +66,12 @@ class lexer:
         elif inputVar == "else":
             return lexeme("ELSE")
 
+        elif inputVar == "function":
+            return lexeme("FUNCTION")
+
+        elif inputVar == "var":
+            return lexeme("VAR")
+
         else:
             return lexeme("VARIABLE", inputVar)
 
@@ -77,6 +95,7 @@ class lexer:
     def lex(self):
         self.ch = self.f.read(1)
         self.skipWhiteSpace()
+        self.checkComment()
 
         if len(self.ch) < 1:
             return lexeme("ENDofINPUT")
@@ -112,7 +131,7 @@ class lexer:
             return lexeme("ASSIGN")
 
         elif self.ch == ';':
-            return lexeme("SEMICOLON")
+            return lexeme("SEMI")
 
         elif self.ch == '.':
             return lexeme("DOT")
@@ -125,15 +144,15 @@ class lexer:
 
         else:
             if re.match("^[0-9]*$", self.ch):
-                self.pushBack()
+                #self.pushBack()
                 return self.lexNumber()
 
             elif re.match("^[A-Za-z]*$", self.ch):
-                self.pushBack()
+                #self.pushBack()
                 return self.lexVariable()
 
             elif self.ch == '\"':
-                self.pushBack()
+                #self.pushBack()
                 return self.lexString()
 
             else:

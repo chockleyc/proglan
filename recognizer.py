@@ -5,6 +5,7 @@ class recognizer:
     def __init__(self):
         self.i = lex.lexer(sys.argv[2])
         self.current = self.i.lex()
+        self.statementList()
 
     def advance(self):
         self.current = self.i.lex()
@@ -22,6 +23,15 @@ class recognizer:
             print("Syntax error at " + self.current)
             exit(0)
         return
+
+    def expression(self):
+        self.primary()
+        if self.opPending():
+            self.operator();
+            self.expression();
+
+    def opPending(self):
+        return self.check("PLUS") or self.check("TIMES")
 
     def primary(self):
         if self.check("NUMBER"):
@@ -62,6 +72,8 @@ class recognizer:
             self.expression()
         elif self.ifStatementPending():
             self.ifStatement()
+        elif self.whileStatementPending():
+            self.whileStatement()
         else:
             self.match("TYPE_INT")
             self.match("VARIABLE")
