@@ -3,7 +3,7 @@ class evaluator:
     def __init__(self):
         return
 
-    def eval(self, tree, env):
+    def Eval(self, tree, env):
         if tree.datatype == "STATEMENTLIST":
             return self.evalStatementList(tree, env)
         elif tree.datatype == "STATEMENT":
@@ -53,7 +53,7 @@ class evaluator:
             return self.evalStatement(tree.left, env)
 
     def evalStatement(self, tree, env):
-        return eval(tree.left, env)
+        return self.Eval(tree.left, env)
 
     def evalDeclaration(self, tree, env):
         if tree.left.datatype == "FUNCTION":
@@ -62,8 +62,49 @@ class evaluator:
             env.Insert(tree.left.left, tree.left.right, env)
 
     def evalFunctionBody(self, tree, env):
-        self.eval(tree.left, env)
-        return eval(tree.right, env)
+        self.Eval(tree.left, env)
+        return self.Eval(tree.right, env)
 
+    def evalReturnStatement(self, tree, env):
+        return self.Eval(tree.right, env)
+
+    def evalConditional(self, tree, env):
+        return self.Eval(tree.left, env)
+
+    def evalExpression(self, tree, env):
+        if tree.right.datatype == "GLUE":
+            return evalOperation(tree.left, tree.right.left, tree.right.right, env)
+        else:
+            return eval(tree.left, env)
+
+    def evalBlock(self, tree, env):
+        return eval(tree.left)
+
+    def evalOptInit(self, tree, env):
+        if tree.left != None:
+            return eval(tree.right)
+        else: 
+            return
+
+    def evalIfStatement(self, tree, env):
+        if self.evalBool(tree.left, env):
+            return self.Eval(tree.right.left, env)
+        else:
+            return self.Eval(tree.right.right, env)
+
+    def evalWhileStatement(self, tree, env):
+        result = None
+        while self.evalBool(tree.left, env):
+            result = self.Eval(tree.right, env)
+        return result
+
+    def evalPrimary(self, tree, env):
+        if tree.left.datatype == "VARIABLEFUNCCALL":
+            return self.Eval(tree.left)
+        else:
+            return tree.left
+
+    def evalVariableFuncCall(self, tree, env):
+        
 
 
