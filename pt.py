@@ -49,15 +49,15 @@ class recognizer:
         tree = lex.lexeme("DECLARATION")
         if self.check("FUNCTION"):
             tree.left = self.match("FUNCTION")
-            tree.left.left = self.match("VARIABLE")
+            tree.right = self.match("VARIABLE")
             self.match("OPAREN")
-            tree.left.left.right = self.optArgList()
+            tree.left.left = self.optArgList()
             self.match("CPAREN")
             tree.left.right = self.functionBody()
         elif self.check("VAR"):
             tree.left = self.match("VAR")
             tree.left.left = self.match("VARIABLE")
-            self.optInit()
+            tree.left.right = self.optInit()
             tree.right = self.match("SEMI")
         return tree
 
@@ -220,9 +220,18 @@ class recognizer:
 
     def optArgList(self):
         tree = lex.lexeme("OPTARGLIST")
+        if self.expressionPending():
+            tree.left = self.expression()
+            if self.check("COMMA"):
+                self.match("COMMA")
+                tree.right = self.ArgList()
+        return tree
+
+    def ArgList(self):
+        tree = lex.lexeme("ARGLIST")
         tree.left = self.expression()
         if self.check("COMMA"):
             self.match("COMMA")
-            tree.right = self.optArgList()
+            tree.right = self.ArgList()
         return tree
 
