@@ -20,7 +20,7 @@ class recognizer:
         else:
             print("Syntax error at " + self.current.datatype)
             exit(0)
-        return
+        return self.current
 
     def statementList(self):
         self.statement()

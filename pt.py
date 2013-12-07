@@ -20,79 +20,97 @@ class recognizer:
         else:
             print("Syntax error at " + self.current.datatype)
             exit(0)
-        return
+        return self.current
 
     def statementList(self):
-        self.statement()
+        tree = lex.lexeme("STATEMENTLIST")
+        tree.left = self.statement()
         if self.statementPending():
-            self.statementList()
+            tree.right = self.statementList()
+        return tree
 
     def statementPending(self):
         return self.declarationPending() or self.conditionalPending() or self.expressionPending()
 
     def statement(self):
+        tree = lex.lexeme("STATEMENT")
         if self.declarationPending():
-            self.declaration()
+            tree.left = self.declaration()
         elif self.conditionalPending():
-            self.conditional()
+            tree.left = self.conditional()
         elif self.expressionPending():
-            self.expression()
-            self.match("SEMI")
+            tree.left = self.expression()
+            tree.right = self.match("SEMI")
 
     def declarationPending(self):
         return self.check("FUNCTION") or self.check("VAR")
 
     def declaration(self):
+        tree = lex.lexeme("DECLARATION")
         if self.check("FUNCTION"):
-            self.match("FUNCTION")
-            self.match("VARIABLE")
+            tree.left = self.match("FUNCTION")
+            tree.left.left = self.match("VARIABLE")
             self.match("OPAREN")
-            self.optArgList()
+            tree.left.left.right = self.optArgList()
             self.match("CPAREN")
-            self.functionBody()
+            tree.left.right = self.functionBody()
         elif self.check("VAR"):
-            self.match("VAR")
-            self.match("VARIABLE")
+            tree.left = self.match("VAR")
+            tree.left.left = self.match("VARIABLE")
             self.optInit()
-            self.match("SEMI")
+            tree.right = self.match("SEMI")
+        return tree
 
     def functionBody(self):
+        tree = lex.lexeme("FUNCTIONBODY")
         self.match("OBRACE")
-        self.optStatementList()
-        self.returnStatement()
+        tree.left = self.optStatementList()
+        tree.right = self.returnStatement()
         self.match("CBRACE")
+        return tree
 
     def returnStatement(self):
-        self.match("RETURN")
-        self.statement()
+        tree = lex.lexeme("RETURNSTATEMENT")
+        tree.left = self.match("RETURN")
+        tree.right = self.statement()
+        return tree
 
     def conditionalPending(self):
         return self.ifStatementPending() or self.whileStatementPending()
 
     def conditional(self):
+        tree = lex.lexeme("CONDITIONAL")
         if self.ifStatementPending():
-            self.ifStatement()
+            tree.left = self.ifStatement()
         elif self.whileStatementPending():
-            self.whileStatement()
+            tree.left = self.whileStatement()
+        return tree
             
     def expressionPending(self):
         return self.primaryPending()
 
     def expression(self):
-        self.primary()
+        tree = lex.lexeme("EXPRESSION")
+        tree.left = self.primary()
         if self.operatorPending():
-            self.operator()
-            self.expression()
+            tree.right = lex.lexeme("GLUE")
+            tree.right.left = self.operator()
+            tree.right.right = self.expression()
+        return tree
 
     def block(self):
+        tree = lex.lexeme("BLOCK")
         self.match("OBRACE")
-        self.optStatementList()
+        tree.left = self.optStatementList()
         self.match("CBRACE")
+        return tree
 
     def optInit(self):
+        tree = lex.lexeme("OPTINIT")
         if self.check("ASSIGN"):
-            self.match("ASSIGN")
-            self.expression()
+            tree.left = self.match("ASSIGN")
+            tree.right = self.expression()
+        return tree
 
     def ifStatementPending(self):
         return self.check("IF")
@@ -101,65 +119,80 @@ class recognizer:
         return self.check("WHILE")
 
     def ifStatement(self):
+        tree = lex.lexeme("IFSTATEMENT")
         self.match("IF")
         self.match("OPAREN")
-        self.expression()
+        tree.left = self.expression()
         self.match("CPAREN")
-        self.block()
-        self.optElse()
+        tree.right = lex.lexeme("GLUE")
+        tree.right.left = self.block()
+        tree.right.right = self.optElse()
+        return tree
 
     def whileStatement(self):
+        tree = lex.lexeme("WHILESTATEMENT")
         self.match("WHILE")
         self.match("OPAREN")
-        self.expression()
+        tree.left = self.expression()
         self.match("CPAREN")
-        self.block()
+        tree.right = self.block()
+        return tree
 
     def primaryPending(self):
         return self.functionCallPending() or self.check("STRING") or self.numericPending()
 
     def primary(self):
+        tree = lex.lexeme("PRIMARY")
         if self.check("STRING"):
-            self.match("STRING")
+            tree.left = self.match("STRING")
         elif self.check("INTEGER"):
-            self.match("INTEGER")
+            tree.left = self.match("INTEGER")
         elif self.check("VARIABLE"):
-            self.variableFuncCall()
+            tree.left = self.variableFuncCall()
+        return tree
 
     def variableFuncCall(self):
-        self.match("VARIABLE")
+        tree = lex.lexeme("VARIABLEFUNCCALL")
+        tree.left = self.match("VARIABLE")
         if self.check("OPAREN"):
             self.match("OPAREN")
-            self.optArgList()
+            tree.right = self.optArgList()
             self.match("CPAREN")
+        return tree
 
     def operatorPending(self):
         return self.check("PLUS") or self.check("MINUS") or self.check("TIMES") or self.check("DIVIDES") or self.check("LESSTHAN") or self.check("GREATERTHAN") or self.check("ASSIGN")
 
     def operator(self):
+        tree = lex.lexeme("OPERATOR")
         if self.check("PLUS"):
-            self.match("PLUS")
+            tree.left = self.match("PLUS")
         elif self.check("MINUS"):
-            self.match("MINUS")
+            tree.left = self.match("MINUS")
         elif self.check("TIMES"):
-            self.match("TIMES")
+            tree.left = self.match("TIMES")
         elif self.check("DIVIDES"):
-            self.match("DIVIDES")
+            tree.left = self.match("DIVIDES")
         elif self.check("LESSTHAN"):
-            self.match("LESSTHAN")
+            tree.left = self.match("LESSTHAN")
         elif self.check("GREATERTHAN"):
-            self.match("GREATERTHAN")
+            tree.left = self.match("GREATERTHAN")
         elif self.check("ASSIGN"):
-            self.match("ASSIGN")
+            tree.left = self.match("ASSIGN")
+        return tree
 
     def optStatementList(self):
+        tree = lex.lexeme("OPTSTATEMENTLIST")
         if self.statementPending():
-            self.statementList()
+            tree.left = self.statementList()
+        return tree
 
     def optElse(self):
+        tree = lex.lexeme("OPTELSE")
         if self.check("ELSE"):
             self.match("ELSE")
-            self.block()
+            tree.left = self.block()
+        return tree
 
     def numericPending(self):
         return self.check("INTEGER") or self.check("VARIABLE")
@@ -168,38 +201,28 @@ class recognizer:
         return self.check("VARIABLE")
 
     def functionCall(self):
-        self.match("VARIABLE")
+        tree = lex.lexeme("FUNCTIONCALL")
+        tree.left = lex.lexeme("GLUE")
+        tree.left.left = self.match("VARIABLE")
         self.match("OPAREN")
-        self.optArgList()
+        tree.left.right = self.optArgList()
         self.match("CPAREN")
-        self.match("SEMI")
+        tree.right = self.match("SEMI")
+        return tree
 
     def numeric(self):
+        tree = lex.lexeme("NUMERIC")
         if self.check("INTEGER"):
-            self.match("INTEGER")
+            tree.left = self.match("INTEGER")
         elif self.check("VARIABLE"):
-            self.match("VARIABLE")
+            tree.left = self.match("VARIABLE")
+        return tree
 
     def optArgList(self):
-        self.expression()
+        tree = lex.lexeme("OPTARGLIST")
+        tree.left = self.expression()
         if self.check("COMMA"):
             self.match("COMMA")
-            self.optArgList()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            tree.right = self.optArgList()
+        return tree
 
