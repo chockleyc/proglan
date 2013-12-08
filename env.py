@@ -1,7 +1,7 @@
 import lex
 
 def cons(datatype, left, right):
-    return lex.lexeme(datatype, left, right)
+    return lex.lexeme(datatype, "", left, right)
 
 def car(node):
     return node.left
@@ -13,7 +13,7 @@ def cadr(node):
     return car(cdr(node))
 
 def sameVariable(one, two):
-    if one.data == two.data:
+    if one == two.data:
         return True
     else:
         return False
@@ -51,13 +51,19 @@ def update(variable, newVal, env):
     insert(variable, newVal, env)
 
 def insert(variable, value, env):
-    setCar(env, cons("JOIN". variable, car(env)))
+    setCar(env, cons("JOIN", variable, car(env)))
     setCar(cdr(env), cons("JOIN", value, cadr(env)))
     return value
 
 def extend(variables, values, env):
     return cons("ENV", variables, cons("ENV", values, env))
 
+def preorder(tree):
+    if tree == None:
+        return None
+    print(tree.datatype)
+    preorder(tree.left)
+    preorder(tree.right)
 
 
 

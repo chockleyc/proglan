@@ -1,11 +1,12 @@
 import env
+import lex
 
 class evaluator:
     def __init__(self):
         return
 
     def Eval(self, tree, envi):
-        print(tree.datatype)
+        print(tree)
         if tree.datatype == "STATEMENTLIST":
             return self.evalStatementList(tree, envi)
         elif tree.datatype == "STATEMENT":
@@ -60,9 +61,13 @@ class evaluator:
     def evalDeclaration(self, tree, envi):
         if tree.left.datatype == "FUNCTION":
             closure = env.cons("CLOSURE", envi, env.cons("JOIN", tree.left.left, env.cons("JOIN", tree.left.right, None)))
-            envi.Insert(tree.right, closure, envi) 
-        elif tree.right.datatype == "VAR":
-            env.Insert(tree.left.left, tree.left.right, envi)
+            envi.insert(tree.right, closure, envi) 
+        elif tree.left.datatype == "VAR":
+            init = self.evalOptInit(tree.left.right, envi)
+            if init == None:
+                env.insert(tree.left.left, lex.lexeme("INTEGER", 0), envi)
+            else:
+                env.insert(tree.left.left, init, envi)
 
     def evalFunctionBody(self, tree, envi):
         self.Eval(tree.left, envi)
@@ -75,19 +80,19 @@ class evaluator:
         return self.Eval(tree.left, envi)
 
     def evalExpression(self, tree, envi):
-        if tree.right.datatype == "GLUE":
+        if tree.right != None:
             return evalOperation(tree.left, tree.right.left, tree.right.right, envi)
         else:
-            return eval(tree.left, envi)
+            return self.Eval(tree.left, envi)
 
     def evalBlock(self, tree, envi):
-        return eval(tree.left)
+        return self.Eval(tree.left)
 
     def evalOptInit(self, tree, envi):
         if tree.left != None:
-            return eval(tree.right)
+            return self.Eval(tree.right, envi)
         else: 
-            return
+            return None
 
     def evalIfStatement(self, tree, envi):
         if self.evalBool(tree.left, envi):
@@ -104,8 +109,13 @@ class evaluator:
     def evalPrimary(self, tree, envi):
         if tree.left.datatype == "VARIABLEFUNCCALL":
             return self.Eval(tree.left)
+        elif tree.left.datatype == "VARIABLE":
+            return self.evalVariable(tree.left.left, envi)
         else:
             return tree.left
+
+    def evalVariable(self, tree, envi):
+        return env.lookup(tree.data, envi)
 
     def evalVariableFuncCall(self, tree, envi):
         print("NOT IMPLEMENTED YET")

@@ -8,7 +8,7 @@ class lexeme:
         self.right = aRight
 
     def __str__(self):
-        return self.datatype + " " + self.data
+        return self.datatype + " " + self.data 
 
 class lexer:
     def __init__(self, filename):

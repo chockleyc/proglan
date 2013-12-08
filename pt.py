@@ -16,7 +16,9 @@ class recognizer:
 
     def match(self, myType):
         if self.current.datatype == myType:
+            temp = self.current
             self.advance()
+            return temp
         else:
             print("Syntax error at " + self.current.datatype)
             exit(0)
@@ -162,6 +164,8 @@ class recognizer:
             self.match("OPAREN")
             tree.right = self.optArgList()
             self.match("CPAREN")
+        else:
+            tree.datatype = "VARIABLE"
         return tree
 
     def operatorPending(self):
