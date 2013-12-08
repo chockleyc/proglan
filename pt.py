@@ -22,6 +22,9 @@ class recognizer:
             exit(0)
         return self.current
 
+    def start(self):
+        return self.statementList()
+
     def statementList(self):
         tree = lex.lexeme("STATEMENTLIST")
         tree.left = self.statement()
@@ -41,6 +44,7 @@ class recognizer:
         elif self.expressionPending():
             tree.left = self.expression()
             tree.right = self.match("SEMI")
+        return tree
 
     def declarationPending(self):
         return self.check("FUNCTION") or self.check("VAR")
@@ -221,10 +225,7 @@ class recognizer:
     def optArgList(self):
         tree = lex.lexeme("OPTARGLIST")
         if self.expressionPending():
-            tree.left = self.expression()
-            if self.check("COMMA"):
-                self.match("COMMA")
-                tree.right = self.ArgList()
+            tree.left = self.ArgList()
         return tree
 
     def ArgList(self):

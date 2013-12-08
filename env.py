@@ -1,65 +1,62 @@
 import lex
 
-class environment:
+def cons(datatype, left, right):
+    return lex.lexeme(datatype, left, right)
 
+def car(node):
+    return node.left
 
-    def cons(self, datatype, left, right):
-        return lex.lexeme(datatype, left, right)
+def cdr(node):
+    return node.right
 
-    def car(self, node):
-        return node.left
+def cadr(node):
+    return car(cdr(node))
 
-    def cdr(self, node):
-        return node.right
+def sameVariable(one, two):
+    if one.data == two.data:
+        return True
+    else:
+        return False
 
-    def cadr(self, node):
-        return self.car(self.cdr(node))
+def setCar(node, newVal):
+    node.left = newVal
 
-    def sameVariable(self, one, two):
-        if one.data == two.data:
-            return True
-        else:
-            return False
+def create():
+    return cons("ENV", None, cons("VALUES", None, None))
 
-    def setCar(self, node, newVal):
-        node.left = newVal
+def lookup(variable, env):
+    while (env != None):
+        variables = car(env)
+        vals = cadr(env)
+        while (variables != None):
+            if sameVariable(variable, car(variables)):
+                return car(vals)
+            variables = cdr(variables)
+            vals = cdr(vals)
+        env = cdr(cdr(env))
+    print("variable ", variable, " is undefined")
+    return None
 
-    def create(self):
-        return self.cons("ENV", None, self.cons("VALUES", None, None))
+def update(variable, newVal, env):
+    while (env != None):
+        variables =  car(env)
+        vals = cadr(env)
+        while (variables != None):
+            if sameVariable(variable, car(variables)):
+                setCar(vals, newVal)
+                return None
+            variables = cdr(variables)
+            vals = cdr(vals)
+        env = cdr(cdr(env))
+    insert(variable, newVal, env)
 
-    def lookup(self, variable, env):
-        while (env != None):
-            variables = self.car(env)
-            vals = self.cadr(env)
-            while (self.cars != None):
-                if self.sameVariable(variable, self.car(variables)):
-                    return self.car(vals)
-                variables = self.cdr(variables)
-                vals = self.cdr(vals)
-            env = self.cdr(self.cdr(env))
-        print("variable ", variable, " is undefined")
-        return None
+def insert(variable, value, env):
+    setCar(env, cons("JOIN". variable, car(env)))
+    setCar(cdr(env), cons("JOIN", value, cadr(env)))
+    return value
 
-    def update(self, variable, newVal, env):
-        while (env != None):
-            variables =  self.car(env)
-            vals = self.cadr(env)
-            while (self.cars != None):
-                if self.sameVariable(variable, self.car(variables)):
-                    self.setCar(vals, newVal)
-                    return None
-                variables = self.cdr(variables)
-                vals = self.cdr(vals)
-            env = self.cdr(self.cdr(env))
-        self.insert(variable, newVal, env)
-
-    def insert(self, variable, value, env):
-        self.setCar(env, self.cons("JOIN". variable, self.car(env)))
-        self.setCar(self.cdr(env), self.cons("JOIN", value, self.cadr(env)))
-        return value
-
-    def extend(self, variables, values, env):
-        return self.cons("ENV", variables, self.cons("ENV", values, env))
+def extend(variables, values, env):
+    return cons("ENV", variables, cons("ENV", values, env))
 
 
 
