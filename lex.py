@@ -8,7 +8,7 @@ class lexeme:
         self.right = aRight
 
     def __str__(self):
-        return self.datatype + " " + self.data 
+        return self.datatype + " " + str(self.data)
 
 class lexer:
     def __init__(self, filename):
@@ -45,7 +45,7 @@ class lexer:
             last_pos = self.f.tell()
             self.ch = self.f.read(1)
         self.f.seek(last_pos)
-        return lexeme("INTEGER", myNum)
+        return lexeme("INTEGER", int(myNum))
 
     def checkForKeyword(self, inputVar):
         if inputVar == "int":

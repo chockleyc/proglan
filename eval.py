@@ -6,7 +6,6 @@ class evaluator:
         return
 
     def Eval(self, tree, envi):
-        print(tree)
         if tree.datatype == "STATEMENTLIST":
             return self.evalStatementList(tree, envi)
         elif tree.datatype == "STATEMENT":
@@ -81,12 +80,12 @@ class evaluator:
 
     def evalExpression(self, tree, envi):
         if tree.right != None:
-            return evalOperation(tree.left, tree.right.left, tree.right.right, envi)
+            return self.evalOperation(tree.left, tree.right.left, tree.right.right, envi)
         else:
             return self.Eval(tree.left, envi)
 
     def evalBlock(self, tree, envi):
-        return self.Eval(tree.left)
+        return self.Eval(tree.left, envi)
 
     def evalOptInit(self, tree, envi):
         if tree.left != None:
@@ -108,14 +107,15 @@ class evaluator:
 
     def evalPrimary(self, tree, envi):
         if tree.left.datatype == "VARIABLEFUNCCALL":
-            return self.Eval(tree.left)
+            return self.Eval(tree.left, envi)
         elif tree.left.datatype == "VARIABLE":
             return self.evalVariable(tree.left.left, envi)
         else:
             return tree.left
 
     def evalVariable(self, tree, envi):
-        return env.lookup(tree.data, envi)
+        temp =  env.lookup(tree.data, envi)
+        return temp
 
     def evalVariableFuncCall(self, tree, envi):
         print("NOT IMPLEMENTED YET")
@@ -127,7 +127,7 @@ class evaluator:
         if tree.left == None:
             return tree
         else:
-            return self.Eval(tree.left)
+            return self.Eval(tree.left, envi)
 
     def evalOptElse(self, tree, envi):
         if tree.left == None:
@@ -153,7 +153,7 @@ class evaluator:
 
     def evalBool(self, tree, envi):
         if tree.right.left.left.datatype == "GREATERTHAN":
-            if self.Eval(tree.left, envi) > self.Eval(tree.right.right, envi):
+            if self.Eval(tree.left, envi).data > self.Eval(tree.right.right, envi).data:
                 return True
             else:
                 return False
@@ -162,3 +162,15 @@ class evaluator:
                 return True
             else:
                 return False
+
+    def evalOperation(self, lhs, op, rhs, envi):
+        if op.left.datatype == "PLUS":
+            return self.Eval(lhs, envi).data + self.Eval(rhs, envi).data
+        elif op.left.datatype == "MINUS":
+            return self.Eval(lhs, envi).data - self.Eval(rhs, envi).data
+        elif op.left.datatype == "TIMES":
+            return self.Eval(lhs, envi).data * self.Eval(rhs, envi).data
+        elif op.left.datatype == "DIVIDES":
+            return self.Eval(lhs, envi).data / self.Eval(rhs, envi).data
+        elif op.left.datatype == "ASSIGN":
+            env.update(self.Eval(lhs, envi), self.Eval(rhs, envi), envi)

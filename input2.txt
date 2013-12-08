@@ -1,0 +1,9 @@
+var alpha = 10;
+
+`this is a comment`
+
+while (alpha > 0)
+    {
+        println("alpha is " + alpha);
+        alpha = alpha - 1;
+    }

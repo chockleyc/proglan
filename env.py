@@ -38,11 +38,12 @@ def lookup(variable, env):
     return None
 
 def update(variable, newVal, env):
+    print(variable)
     while (env != None):
         variables =  car(env)
         vals = cadr(env)
         while (variables != None):
-            if sameVariable(variable, car(variables)):
+            if sameVariable(variable.datatype, car(variables)):
                 setCar(vals, newVal)
                 return None
             variables = cdr(variables)
@@ -53,7 +54,7 @@ def update(variable, newVal, env):
 def insert(variable, value, env):
     setCar(env, cons("JOIN", variable, car(env)))
     setCar(cdr(env), cons("JOIN", value, cadr(env)))
-    return value
+    #return value
 
 def extend(variables, values, env):
     return cons("ENV", variables, cons("ENV", values, env))
